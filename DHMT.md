@@ -547,3 +547,212 @@ int main(){
 
 
 
+
+
+![anh dong minh hoa duong cong](https://upload.wikimedia.org/wikipedia/commons/d/db/B%C3%A9zier_3_big.gif)
+
+![anh](13.PNG)
+
+![](14.PNG)
+
+```c
+
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glut.h>
+#include <iostream>
+#include <math.h>
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <Windows.h>
+
+
+int p0[2];
+int p1[2];
+int p2[2];
+int p3[2];
+int tar=4;
+
+
+//ham hien thi text
+// 2 thong so dau chi vi tri hien thi
+// thong so cuoi la chuoi ky tu
+
+void print(int x, int y, char *string)
+{
+    int len, i;
+    
+    //lap tao do cho text(x,y)
+    glRasterPos2f(x, y);
+    
+    //lay chieu dai choui de hien thi
+    len = (int) strlen(string);
+    
+    //vong lap de hien thi chuoi
+    for (i = 0; i < len; i++)
+    {
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24,string[i]);
+    }
+}
+
+int* bezier(float t, int* p0,int* p1,int* p2,int* p3)
+{
+    int res[2];
+    //x^y 
+    //(1-t)^3*p0.x + 3*t*(1-t)^2*p1.x + 3*t^2
+    res[0]=pow((1-t),3)*p0[0]+3*t*pow((1-t),2)*p1[0]+3*pow(t,2)*(1-t)*p2[0]+pow(t,3)*p3[0];
+    res[1]=pow((1-t),3)*p0[1]+3*t*pow((1-t),2)*p1[1]+3*pow(t,2)*(1-t)*p2[1]+pow(t,3)*p3[1];
+    return res;
+}
+/*
+doc them ve cong thuc: https://www.gatevidyalay.com/bezier-curve-in-computer-graphics-examples/
+pow((1-t),3)*p0[0] = (1-t)^3*p0.x
+3*t*pow((1-t),2)*p1[0] = 3*t*(1-t)^2*p1.x
+3*pow(t,2)*(1-t)*p2[0] = 3*t^2*(1-t)*p2.x
+pow(t,3)*p3[0]; = t^3*p3.x
+*/
+void Display() {
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    print(750,500,"Bezier Control Points");
+    glColor3f(1,0,0);
+    char* p0s [20];
+    //bien doi thanh string vao p0s
+    sprintf((char *)p0s,"P0={%d,%d}",p0[0],p0[1]);
+    print(785,450,(char *)p0s);
+    glColor3f(0,1,0);
+    char* p1s [20];
+    sprintf((char *)p1s,"P1={%d,%d}",p1[0],p1[1]);
+    print(785,400,(char *)p1s);
+    glColor3f(0,0,1);
+    char* p2s [20];
+    sprintf((char *)p2s,"P2={%d,%d}",p2[0],p2[1]);
+    print(785,350,(char *)p2s);
+    glColor3f(1,1,1);
+    char* p3s [20];
+    sprintf((char *)p3s,"P3={%d,%d}",p3[0],p3[1]);
+    print(785,300,(char *)p3s);
+    
+    //thuc hien thuat toan benzier
+    glPointSize(1);
+    glColor3f(1,1,0);
+    glBegin(GL_POINTS);
+    for(float t=0;t<1;t+=0.001)
+    {
+        int* p =bezier(t,p0,p1,p2,p3);
+        glVertex3f(p[0],p[1],0);
+    }
+    glEnd();
+    glPointSize(9);
+    glBegin(GL_POINTS);
+    glColor3f(1,0,0);
+    glVertex3f(p0[0],p0[1],0);
+    glColor3f(0,1,0);
+    glVertex3f(p1[0],p1[1],0);
+    glColor3f(0,0,1);
+    glVertex3f(p2[0],p2[1],0);
+    glColor3f(1,1,1);
+    glVertex3f(p3[0],p3[1],0);
+    glEnd();
+    
+    glFlush();
+}
+
+void mo(int x, int y)
+{
+    y=600-y;
+    if(x<0)
+        x=0;
+    if(x>700)
+        x=700;
+    if(y<0)
+        y=0;
+    if(y>600)
+        y=600;
+    if(tar==0)
+    {
+        p0[0]=x;
+        p0[1]=y;
+    }
+    else if(tar==1)
+    {
+        p1[0]=x;
+        p1[1]=y;
+    }
+    else if(tar==2)
+    {
+        p2[0]=x;
+        p2[1]=y;
+    }
+    if(tar==3)
+    {
+        p3[0]=x;
+        p3[1]=y;
+    }
+    glutPostRedisplay();
+}
+
+void mou(int b,int s,int x, int y)
+{
+    y=600-y;
+    if(b==GLUT_LEFT_BUTTON && s==GLUT_DOWN)
+    {
+        if(p0[0]<x+9&&p0[0]>x-9&&p0[1]<y+9&&p0[1]>y-9)
+        {
+            tar=0;
+        }
+        else if(p1[0]<x+9&&p1[0]>x-9&&p1[1]<y+9&&p1[1]>y-9)
+        {
+            tar=1;
+        }
+        else if(p2[0]<x+9&&p2[0]>x-9&&p2[1]<y+9&&p2[1]>y-9)
+        {
+            tar=2;
+        }
+        else if(p3[0]<x+9&&p3[0]>x-9&&p3[1]<y+9&&p3[1]>y-9)
+        {
+            tar=3;
+        }
+    }
+    if(b==GLUT_LEFT_BUTTON && s==GLUT_UP)
+        tar=4;
+}
+
+int main(int argc, char** argr) {
+    glutInit(&argc, argr);
+    
+    glutInitWindowSize(1000, 600);
+    
+    p0[0]=100;
+    p0[1]=100;
+    
+    p1[0]=100;
+    p1[1]=500;
+    
+    p2[0]=500;
+    p2[1]=500;
+    
+    p3[0]=500;
+    p3[1]=100;
+    
+    glutCreateWindow("OpenGL - Bezier Curve Stimulation");
+    glutDisplayFunc(Display);
+	/*
+		glutMotionFunc and glutPassiveMotionFunc set the motion and passive motion callback respectively for the current window. The motion callback for a window is called when the mouse moves within the window while one or more mouse buttons are pressed. The passive motion callback for a window is called when the mouse moves within the window while no mouse buttons are pressed.
+		Lenh goi lai cua so khi cocn chuot chuyen dong trong cua so voi 1 hay nhieu nut chuot dc nhan
+	*/
+    glutMotionFunc(mo);
+    glutMouseFunc(mou);
+    
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    gluOrtho2D(0.0, 1000, 0.0, 600);
+    
+    glutMainLoop();
+    return 0;
+}
+```
+
+
+
